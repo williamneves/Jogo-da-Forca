@@ -1,0 +1,171 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="script" href="js/words.js">
+</head>
+<body>
+<div id="main">
+    <header class="header">
+        <div class="container">
+            <h2 class="game-title">Jogo da forca!</h2>
+            <p class="game-subtitle">Tente acertar a palavra, escolhendo uma letra por vez. Você tem <b>7 tentativas.</b></p>
+            <p class="game-subtitle">Você pode digitar no teclado, ou clicar em uma letra.</p>
+        </div>
+    </header>
+    <content>
+        <div id="display-hangman">
+            	<!-- Display Hangman Stages with JS -->
+        </div>
+
+        <div id="display-words">
+            <!-- Display Guessed Word with JS -->
+        </div>
+
+        <div id="display-keyboard">
+            <div id="keyboard">
+                <!-- Display the Keyboard -->
+            </div>
+        </div>
+
+    </content>
+</div>
+    
+</body>
+<!--IMPORTING THE WORDS -->
+<script type="text/javascript" src="js/words.js"></script>
+<script type="text/javascript" src="js/keycodes.js"></script>
+
+<!--FUNCTIONS -->
+<script type="text/javascript">
+
+// VARIABLES
+var to_guess_word = words_list[Math.floor(Math.random() * words_list.length)].toUpperCase().normalize('NFD').replace(/([\u0300-\u036f]|[^0-9a-zA-Z])/g, '');
+var max_attempts = 7
+var attempts = 0
+var guessed_char_list = []
+var typed_chars = []
+var guessed_stars = []
+var to_guess_word_in_keycode = []
+var alphabet_keycode = []
+var alphabet_letters = []
+var guessed_letter = ""
+var key_button = ""
+
+for (var key in keycodes_list){
+    alphabet_keycode.push(keycodes_list[key]);
+    alphabet_letters.push(keycodes_list_numbers[keycodes_list[key]]);
+}
+
+for (var i = 0; i < to_guess_word.length;i++){
+    guessed_stars.push("*");
+    guessed_char_list.push(to_guess_word[i]);
+    to_guess_word_in_keycode.push(keycodes_list[to_guess_word[i]]);
+}
+
+
+function drawHangmanGifs(){
+    preload = "./img/stage"
+    posload = ".gif"
+    content = ""
+    for (var i = 0;i < max_attempts;i++){
+        content = "<div class='stages' style='background-image: url("+preload+attempts+posload+");'></div>";
+        content += "<span style='text-align:center;font-style: italic;'>Você possui "+(max_attempts-attempts)+" tentativas restantes</span>"
+    }
+    document.getElementById("display-hangman").innerHTML = content;
+}
+
+function drawGuessWord(){
+    content = ""
+    for (var i = 0;i < to_guess_word.length;i++){
+        content += "<div class='word-char'><span>"+guessed_stars[i]+"</span></div>"
+    }
+    document.getElementById("display-words").innerHTML = content;
+}
+
+function drawKeyboard() {
+    content = ""
+    var alpha_sort = alphabet_letters.sort()
+    var alpha_numbers_sort = alphabet_keycode.sort()    
+    for (var i = 0;i < alphabet_letters.length;i++){   
+        if (typed_chars.includes(alpha_sort[i]))  {      
+                content += "<div class='keyboard-keys "+'guessed'+"' id='"+alpha_numbers_sort[i]+"'><button type='button' '>"+alpha_sort[i]+"</button></div>"
+        }
+        else{
+            content += "<div class='keyboard-keys "+'not-guessed'+"' id='"+alpha_numbers_sort[i]+"'><button type='button' onclick='getClick("+alpha_numbers_sort[i]+")''>"+alpha_sort[i]+"</button></div>"
+        }
+    }
+    document.getElementById("keyboard").innerHTML = content;
+}
+
+function getClick(key) {
+    for (var i in keycodes_list){
+        if (key == keycodes_list[i]){
+            key_button = keycodes_list_numbers[key];
+        }
+    }
+    checkClick()
+}
+
+function checkClick() {
+    guessed_letter = keycodes_list_numbers[keycodes_list[key_button]]; 
+    if (guessed_char_list.includes(key_button)) {
+        console.log('keys: ', guessed_char_list)
+        
+        typed_chars.push(guessed_letter);
+        for (var i = 0; i < guessed_char_list.length;i++){
+            if(guessed_letter == guessed_char_list[i]){
+                guessed_stars.splice(i,1,guessed_letter)
+            }
+            if(guessed_letter == guessed_char_list[i]){
+                guessed_stars.splice(i,1,guessed_letter)
+            }
+        }
+    }
+    if(!guessed_char_list.includes(key_button) && alphabet_letters.includes(key_button)){
+        attempts += 1;
+        typed_chars.push(guessed_letter);
+    }
+    drawKeyboard()
+    drawGuessWord()
+    drawHangmanGifs()
+}
+
+function checkKeyes() {
+    document.onkeydown = function(e) {
+        var guessed_chars = 1	
+        console.log('e: ', e);
+        console.log('e.keyCode: ', e.keyCode);
+            guessed_letter = keycodes_list_numbers[e.keyCode];
+            if (to_guess_word_in_keycode.includes(e.keyCode)) {
+                typed_chars.push(guessed_letter);
+                for (var i = 0; i < guessed_char_list.length;i++){
+                    if(guessed_letter == guessed_char_list[i]){
+                        guessed_stars.splice(i,1,guessed_letter)
+                    }
+                    if(guessed_letter == guessed_char_list[i]){
+                        guessed_stars.splice(i,1,guessed_letter)
+                    }
+                }
+            }
+            if(!to_guess_word_in_keycode.includes(e.keyCode) && alphabet_keycode.includes(e.keyCode) && !typed_chars.includes(guessed_letter)){
+                attempts += 1;
+                typed_chars.push(guessed_letter);
+            }
+            else{
+                
+            }
+            drawKeyboard()
+            drawGuessWord()
+            drawHangmanGifs() 
+        }  
+}
+drawHangmanGifs()
+drawGuessWord()
+drawKeyboard()
+checkKeyes()
+</script>
+</html>
